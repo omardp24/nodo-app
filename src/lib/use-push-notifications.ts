@@ -66,5 +66,23 @@ export function usePushNotifications() {
     }
   }, [soportado]);
 
-  return { soportado, suscrito, cargando, activar };
+  const desactivar = useCallback(async () => {
+    if (!soportado) return;
+    setCargando(true);
+    try {
+      const registro = await navigator.serviceWorker.register("/sw.js");
+      const sub = await registro.pushManager.getSubscription();
+      if (sub) {
+        await notificacionesApi.desuscribir(sub.endpoint);
+        await sub.unsubscribe();
+      }
+      setSuscrito(false);
+    } catch (error) {
+      console.warn("No se pudo desactivar las notificaciones push:", error);
+    } finally {
+      setCargando(false);
+    }
+  }, [soportado]);
+
+  return { soportado, suscrito, cargando, activar, desactivar };
 }

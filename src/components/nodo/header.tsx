@@ -2,23 +2,23 @@
 
 import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Bell, BellOff, LogOut, Moon, SlidersHorizontal, Sun } from "lucide-react";
-import { usePushNotifications } from "@/lib/use-push-notifications";
+import { Moon, SlidersHorizontal, Sun } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
-  pendientes: number;
   onFiltrar?: () => void;
   /** Cantidad de filtros activos (categoría + prioridad) — muestra un indicador si es > 0. */
   filtrosActivos?: number;
+  perfilActivo?: boolean;
+  onVerPerfil: () => void;
 }
 
-export function Header({ pendientes, onFiltrar, filtrosActivos = 0 }: HeaderProps) {
-  const { soportado, suscrito, cargando, activar } = usePushNotifications();
-  const { cerrarSesion } = useAuth();
+export function Header({ onFiltrar, filtrosActivos = 0, perfilActivo = false, onVerPerfil }: HeaderProps) {
+  const { session } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
   const esOscuro = resolvedTheme === "dark";
+  const inicial = (session?.user.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 backdrop-blur-md">
@@ -30,33 +30,11 @@ export function Header({ pendientes, onFiltrar, filtrosActivos = 0 }: HeaderProp
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground sm:flex">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          {pendientes} pendientes
-        </div>
-
-        {soportado && (
-          <button
-            type="button"
-            onClick={suscrito ? undefined : activar}
-            disabled={cargando || suscrito}
-            aria-label={suscrito ? "Notificaciones activas" : "Activar notificaciones"}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
-              suscrito
-                ? "border-warning/40 bg-warning/10 text-warning"
-                : "border-border bg-card text-muted-foreground active:bg-warning/10 active:text-warning",
-            )}
-          >
-            {suscrito ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-          </button>
-        )}
-
         <button
           type="button"
           onClick={() => setTheme(esOscuro ? "light" : "dark")}
           aria-label={esOscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors active:bg-secondary active:text-foreground"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors active:bg-secondary active:text-foreground"
         >
           {esOscuro ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -66,7 +44,7 @@ export function Header({ pendientes, onFiltrar, filtrosActivos = 0 }: HeaderProp
           onClick={onFiltrar}
           aria-label={filtrosActivos > 0 ? `Filtros (${filtrosActivos} activos)` : "Filtros"}
           className={cn(
-            "relative flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+            "relative flex h-9 w-9 items-center justify-center rounded-full border transition-colors",
             filtrosActivos > 0
               ? "border-primary/40 bg-primary/10 text-primary"
               : "border-border bg-card text-muted-foreground active:bg-secondary active:text-foreground",
@@ -82,11 +60,16 @@ export function Header({ pendientes, onFiltrar, filtrosActivos = 0 }: HeaderProp
 
         <button
           type="button"
-          onClick={cerrarSesion}
-          aria-label="Cerrar sesión"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors active:bg-secondary active:text-foreground"
+          onClick={onVerPerfil}
+          aria-label="Perfil"
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-warning p-0.5 transition-all",
+            perfilActivo ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "",
+          )}
         >
-          <LogOut className="h-4 w-4" />
+          <span className="flex h-full w-full items-center justify-center rounded-full bg-card text-[13px] font-bold text-foreground">
+            {inicial}
+          </span>
         </button>
       </div>
     </header>

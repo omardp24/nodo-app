@@ -18,12 +18,14 @@ interface VinculoSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCrear: (nodo: InterpretacionRecordatorio) => void;
+  /** Si el usuario desactivó el dictado por voz en Ajustes — oculta el micrófono. */
+  vozHabilitada?: boolean;
 }
 
 const SUGERENCIAS = ["Mañana 9am", "En 2 horas", "En 30 minutos", "Hoy 6pm"];
 const DEBOUNCE_MS = 600;
 
-export function VinculoSheet({ open, onOpenChange, onCrear }: VinculoSheetProps) {
+export function VinculoSheet({ open, onOpenChange, onCrear, vozHabilitada = true }: VinculoSheetProps) {
   const [texto, setTexto] = useState("");
   const [preview, setPreview] = useState<InterpretacionRecordatorio | null>(null);
   const [interpretando, setInterpretando] = useState(false);
@@ -159,20 +161,22 @@ export function VinculoSheet({ open, onOpenChange, onCrear }: VinculoSheetProps)
               rows={1}
               className="max-h-28 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
             />
-            <button
-              type="button"
-              onClick={alternarMic}
-              disabled={!micSoportado}
-              aria-label="Dictar por voz"
-              className={cn(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-30",
-                escuchando
-                  ? "animate-pulse border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-muted-foreground active:text-foreground",
-              )}
-            >
-              <Mic className="h-4 w-4" />
-            </button>
+            {vozHabilitada && (
+              <button
+                type="button"
+                onClick={alternarMic}
+                disabled={!micSoportado}
+                aria-label="Dictar por voz"
+                className={cn(
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors disabled:opacity-30",
+                  escuchando
+                    ? "animate-pulse border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground active:text-foreground",
+                )}
+              >
+                <Mic className="h-4 w-4" />
+              </button>
+            )}
             <button
               type="button"
               onClick={confirmar}

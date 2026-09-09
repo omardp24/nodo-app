@@ -1,9 +1,9 @@
 "use client";
 
-import { Activity, CalendarDays, Sparkles, Sun } from "lucide-react";
+import { Activity, CalendarDays, CircleUser, Sparkles, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type Tab = "hoy" | "proximos" | "actividad";
+export type Tab = "hoy" | "proximos" | "actividad" | "perfil";
 
 interface BottomNavProps {
   active: Tab;
@@ -15,6 +15,7 @@ const TABS: { id: Tab; label: string; icon: typeof Sun }[] = [
   { id: "hoy", label: "Hoy", icon: Sun },
   { id: "proximos", label: "Próximos", icon: CalendarDays },
   { id: "actividad", label: "Actividad", icon: Activity },
+  { id: "perfil", label: "Perfil", icon: CircleUser },
 ];
 
 export function BottomNav({ active, onChange, onAbrirVinculo }: BottomNavProps) {

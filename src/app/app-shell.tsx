@@ -14,6 +14,8 @@ import { FiltrosSheet } from "@/components/nodo/filtros-sheet";
 import { ProximosList } from "@/components/nodo/proximos-list";
 import { ActividadHeatmap } from "@/components/nodo/actividad-heatmap";
 import { NodoDetalleSheet } from "@/components/nodo/nodo-detalle-sheet";
+import { Perfil } from "@/components/nodo/perfil";
+import { OnboardingOverlay } from "@/components/nodo/onboarding-overlay";
 import { isSameDay, toISODate, sumarHorasISO, sumarUnDiaISO } from "@/lib/date";
 import { calcularEstadisticas } from "@/lib/racha";
 import { categoriasApi, listasApi, recordatoriosApi, type InterpretacionRecordatorio } from "@/lib/resources";
@@ -28,6 +30,18 @@ function capitalizar(texto: string): string {
 
 const LISTA_DEFAULT = "Personal";
 const CATEGORIA_DEFAULT = "General";
+const CLAVE_ONBOARDING_VISTO = "nodo-onboarding-visto";
+const CLAVE_VOZ_HABILITADA = "nodo-voz-habilitada";
+
+function leerLocalStorage(clave: string, porDefecto: boolean): boolean {
+  if (typeof window === "undefined") return porDefecto;
+  try {
+    const valor = window.localStorage.getItem(clave);
+    return valor === null ? porDefecto : valor === "1";
+  } catch {
+    return porDefecto;
+  }
+}
 
 export function AppShell() {
   const [nodos, setNodos] = useState<Recordatorio[]>([]);
@@ -41,6 +55,31 @@ export function AppShell() {
   const [filtroCategoriaIds, setFiltroCategoriaIds] = useState<Set<string>>(new Set());
   const [filtroPrioridades, setFiltroPrioridades] = useState<Set<Prioridad>>(new Set());
   const [detalleId, setDetalleId] = useState<string | null>(null);
+  const [vozHabilitada, setVozHabilitada] = useState(() => leerLocalStorage(CLAVE_VOZ_HABILITADA, true));
+  const [onboardingAbierto, setOnboardingAbierto] = useState(
+    () => !leerLocalStorage(CLAVE_ONBOARDING_VISTO, false),
+  );
+
+  function toggleVoz() {
+    setVozHabilitada((actual) => {
+      const nuevo = !actual;
+      try {
+        window.localStorage.setItem(CLAVE_VOZ_HABILITADA, nuevo ? "1" : "0");
+      } catch {
+        // localStorage puede fallar en navegación privada — no es crítico, solo no persiste.
+      }
+      return nuevo;
+    });
+  }
+
+  function cerrarOnboarding() {
+    setOnboardingAbierto(false);
+    try {
+      window.localStorage.setItem(CLAVE_ONBOARDING_VISTO, "1");
+    } catch {
+      // idem — no crítico si no persiste.
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -219,11 +258,12 @@ export function AppShell() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md min-h-screen flex-col bg-background">
+    <div className="relative mx-auto flex w-full max-w-md min-h-screen flex-col overflow-hidden bg-background">
       <Header
-        pendientes={pendientesHoy}
         onFiltrar={() => setFiltrosAbierto(true)}
         filtrosActivos={filtroCategoriaIds.size + filtroPrioridades.size}
+        perfilActivo={tab === "perfil"}
+        onVerPerfil={() => setTab("perfil")}
       />
 
       {tab === "hoy" && (
@@ -324,8 +364,24 @@ export function AppShell() {
         </main>
       )}
 
+      {tab === "perfil" && (
+        <main className="flex-1 pb-32">
+          <Perfil
+            nodos={nodos}
+            vozHabilitada={vozHabilitada}
+            onToggleVoz={toggleVoz}
+            onVerOnboarding={() => setOnboardingAbierto(true)}
+          />
+        </main>
+      )}
+
       <BottomNav active={tab} onChange={setTab} onAbrirVinculo={() => setVinculoAbierto(true)} />
-      <VinculoSheet open={vinculoAbierto} onOpenChange={setVinculoAbierto} onCrear={crearNodo} />
+      <VinculoSheet
+        open={vinculoAbierto}
+        onOpenChange={setVinculoAbierto}
+        onCrear={crearNodo}
+        vozHabilitada={vozHabilitada}
+      />
       <FiltrosSheet
         open={filtrosAbierto}
         onOpenChange={setFiltrosAbierto}
@@ -345,6 +401,7 @@ export function AppShell() {
         }}
         onPosponer={posponer}
       />
+      <OnboardingOverlay abierto={onboardingAbierto} onCerrar={cerrarOnboarding} />
     </div>
   );
 }
