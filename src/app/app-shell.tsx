@@ -5,14 +5,26 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "@/components/nodo/header";
 import { DateScroller } from "@/components/nodo/date-scroller";
 import { NodoCard } from "@/components/nodo/nodo-card";
+import { ProgresoAnillo } from "@/components/nodo/progreso-anillo";
+import { ProximoNodoCard } from "@/components/nodo/proximo-nodo-card";
+import { DiaCerrado } from "@/components/nodo/dia-cerrado";
 import { BottomNav, type Tab } from "@/components/nodo/bottom-nav";
 import { VinculoSheet } from "@/components/nodo/vinculo-sheet";
 import { FiltrosSheet } from "@/components/nodo/filtros-sheet";
 import { ProximosList } from "@/components/nodo/proximos-list";
 import { ActividadHeatmap } from "@/components/nodo/actividad-heatmap";
-import { toISODate, sumarHorasISO, sumarUnDiaISO } from "@/lib/date";
+import { NodoDetalleSheet } from "@/components/nodo/nodo-detalle-sheet";
+import { isSameDay, toISODate, sumarHorasISO, sumarUnDiaISO } from "@/lib/date";
+import { calcularEstadisticas } from "@/lib/racha";
 import { categoriasApi, listasApi, recordatoriosApi, type InterpretacionRecordatorio } from "@/lib/resources";
 import type { Prioridad, Recordatorio } from "@/types/recordatorio";
+
+const FORMATEADOR_FECHA = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" });
+const FORMATEADOR_DIA_SEMANA = new Intl.DateTimeFormat("es", { weekday: "long" });
+
+function capitalizar(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
 
 const LISTA_DEFAULT = "Personal";
 const CATEGORIA_DEFAULT = "General";
@@ -28,6 +40,7 @@ export function AppShell() {
   const [filtrosAbierto, setFiltrosAbierto] = useState(false);
   const [filtroCategoriaIds, setFiltroCategoriaIds] = useState<Set<string>>(new Set());
   const [filtroPrioridades, setFiltroPrioridades] = useState<Set<Prioridad>>(new Set());
+  const [detalleId, setDetalleId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -95,7 +108,17 @@ export function AppShell() {
     [nodosFiltrados],
   );
 
-  const pendientesHoy = nodosDelDia.filter((n) => n.estado !== "COMPLETADO").length;
+  const pendientesDelDia = useMemo(
+    () => nodosDelDia.filter((n) => n.estado !== "COMPLETADO"),
+    [nodosDelDia],
+  );
+  const pendientesHoy = pendientesDelDia.length;
+  const esHoySeleccionado = isSameDay(fechaSeleccionada, new Date());
+  const siguiente = esHoySeleccionado ? (pendientesDelDia[0] ?? null) : null;
+  const restoDelDia = siguiente ? nodosDelDia.filter((n) => n.id !== siguiente.id) : nodosDelDia;
+  const estadisticas = useMemo(() => calcularEstadisticas(nodosFiltrados), [nodosFiltrados]);
+  const tituloDia = esHoySeleccionado ? "Hoy" : capitalizar(FORMATEADOR_DIA_SEMANA.format(fechaSeleccionada));
+  const nodoDetalle = detalleId ? (nodos.find((n) => n.id === detalleId) ?? null) : null;
 
   function toggleFiltroCategoria(id: string) {
     setFiltroCategoriaIds((actual) => {
@@ -205,38 +228,79 @@ export function AppShell() {
 
       {tab === "hoy" && (
         <>
-          <DateScroller
-            selected={fechaSeleccionada}
-            onSelect={setFechaSeleccionada}
-            fechasConNodos={fechasConNodos}
-          />
+          <div className="flex flex-col gap-4 px-4 pt-1">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <div className="text-[34px] font-bold leading-none tracking-tight text-foreground">
+                  {tituloDia}
+                </div>
+                <div className="mt-1.5 text-[13px] text-muted-foreground">
+                  {FORMATEADOR_FECHA.format(fechaSeleccionada)}
+                </div>
+                {esHoySeleccionado && (
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                    <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                    {pendientesHoy === 0 ? "todo cerrado" : `${pendientesHoy} por cerrar`}
+                  </div>
+                )}
+              </div>
+              {esHoySeleccionado && nodosDelDia.length > 0 && (
+                <ProgresoAnillo hechos={nodosDelDia.length - pendientesHoy} total={nodosDelDia.length} />
+              )}
+            </div>
+            <DateScroller
+              selected={fechaSeleccionada}
+              onSelect={setFechaSeleccionada}
+              fechasConNodos={fechasConNodos}
+            />
+          </div>
           <main className="flex-1 px-4 pb-32 pt-1">
             {nodosDelDia.length === 0 ? (
               <div className="py-16 text-center text-sm text-muted-foreground">
                 Nada por aquí — desliza el asistente para crear un nodo.
               </div>
             ) : (
-              <ul className="flex flex-col gap-2">
-                <AnimatePresence initial={false}>
-                  {nodosDelDia.map((nodo) => (
-                    <motion.li
-                      key={nodo.id}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <NodoCard
-                        nodo={nodo}
-                        onCompletar={completar}
-                        onPosponer={posponer}
-                        onToggleCheckbox={toggleCheckbox}
-                      />
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ul>
+              <>
+                {siguiente && (
+                  <div className="mb-5">
+                    <ProximoNodoCard
+                      nodo={siguiente}
+                      onCompletar={completar}
+                      onPosponer={posponer}
+                      onAbrir={setDetalleId}
+                    />
+                  </div>
+                )}
+                {esHoySeleccionado && pendientesHoy === 0 && (
+                  <div className="mb-5">
+                    <DiaCerrado total={nodosDelDia.length} racha={estadisticas.rachaActual} />
+                  </div>
+                )}
+                <ul>
+                  <AnimatePresence initial={false}>
+                    {restoDelDia.map((nodo, i) => (
+                      <motion.li
+                        key={nodo.id}
+                        layout
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <NodoCard
+                          nodo={nodo}
+                          onCompletar={completar}
+                          onPosponer={posponer}
+                          onToggleCheckbox={toggleCheckbox}
+                          onAbrir={setDetalleId}
+                          hilo
+                          esUltimoDelHilo={i === restoDelDia.length - 1}
+                        />
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              </>
             )}
           </main>
         </>
@@ -249,6 +313,7 @@ export function AppShell() {
             onCompletar={completar}
             onPosponer={posponer}
             onToggleCheckbox={toggleCheckbox}
+            onAbrir={setDetalleId}
           />
         </main>
       )}
@@ -270,6 +335,15 @@ export function AppShell() {
         prioridades={filtroPrioridades}
         onTogglePrioridad={toggleFiltroPrioridad}
         onLimpiar={limpiarFiltros}
+      />
+      <NodoDetalleSheet
+        nodo={nodoDetalle}
+        onOpenChange={(open) => !open && setDetalleId(null)}
+        onCompletar={(id) => {
+          completar(id);
+          setDetalleId(null);
+        }}
+        onPosponer={posponer}
       />
     </div>
   );

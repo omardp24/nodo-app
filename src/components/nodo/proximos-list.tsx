@@ -9,6 +9,7 @@ interface ProximosListProps {
   onCompletar: (id: string) => void;
   onPosponer: (id: string, modo: "1h" | "manana") => void;
   onToggleCheckbox: (id: string) => void;
+  onAbrir: (id: string) => void;
 }
 
 export function ProximosList({
@@ -16,6 +17,7 @@ export function ProximosList({
   onCompletar,
   onPosponer,
   onToggleCheckbox,
+  onAbrir,
 }: ProximosListProps) {
   const hoy = toISODate(new Date());
   const futuros = nodos
@@ -39,22 +41,31 @@ export function ProximosList({
   }
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-4">
+    <div className="flex flex-col px-4 py-2">
       {fechas.map((fecha) => {
         const fechaObj = new Date(`${fecha}T00:00:00`);
         return (
-          <section key={fecha} className="flex flex-col gap-2">
-            <h2 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {diaAbreviado(fechaObj)} {fechaObj.getDate()} de {mesAbreviado(fechaObj)}
-            </h2>
-            <div className="flex flex-col gap-2">
-              {grupos[fecha].map((nodo) => (
+          <section key={fecha} className="mb-6">
+            <div className="mb-3 flex items-center gap-2.5">
+              <span className="text-xs font-bold uppercase tracking-wide text-foreground">
+                {diaAbreviado(fechaObj)} {fechaObj.getDate()} de {mesAbreviado(fechaObj)}
+              </span>
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-[11px] tabular-nums text-muted-foreground">
+                {grupos[fecha].length} {grupos[fecha].length === 1 ? "nodo" : "nodos"}
+              </span>
+            </div>
+            <div>
+              {grupos[fecha].map((nodo, i) => (
                 <NodoCard
                   key={nodo.id}
                   nodo={nodo}
                   onCompletar={onCompletar}
                   onPosponer={onPosponer}
                   onToggleCheckbox={onToggleCheckbox}
+                  onAbrir={onAbrir}
+                  hilo
+                  esUltimoDelHilo={i === grupos[fecha].length - 1}
                 />
               ))}
             </div>

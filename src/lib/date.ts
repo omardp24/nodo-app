@@ -56,3 +56,14 @@ export function diaAbreviado(date: Date): string {
 export function mesAbreviado(date: Date): string {
   return MES_ABBR[date.getMonth()];
 }
+
+/** Tiempo relativo corto a un ISO string futuro/pasado ("en 1 h 20", "atrasado"). */
+export function faltaPara(iso: string): string {
+  const diffMin = Math.round((new Date(iso).getTime() - Date.now()) / 60000);
+  if (diffMin <= 0) return "atrasado";
+  if (diffMin < 60) return `en ${diffMin} min`;
+  const horas = Math.floor(diffMin / 60);
+  const min = diffMin % 60;
+  if (horas < 24) return min > 0 ? `en ${horas} h ${min}` : `en ${horas} h`;
+  return `en ${Math.floor(horas / 24)} d`;
+}

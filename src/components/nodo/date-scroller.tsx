@@ -51,23 +51,21 @@ export function DateScroller({ selected, onSelect, fechasConNodos }: DateScrolle
             type="button"
             onClick={() => onSelect(dia)}
             className={cn(
-              "flex shrink-0 snap-center flex-col items-center gap-1 rounded-2xl border px-3 py-2 transition-colors",
+              "flex w-11 shrink-0 snap-center flex-col items-center gap-1 rounded-[14px] border py-2.5 transition-colors",
               activo
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-muted-foreground active:bg-accent",
             )}
           >
-            <span className="text-[10px] font-medium uppercase tracking-wide opacity-80">
+            <span className="text-[10px] font-semibold uppercase tracking-wide opacity-75">
               {diaAbreviado(dia)}
             </span>
-            <span className="text-sm font-semibold tabular-nums">
-              {dia.getDate()}
-            </span>
+            <span className="text-[15px] font-bold tabular-nums">{dia.getDate()}</span>
             <span
               className={cn(
-                "h-1 w-1 rounded-full",
+                "h-[3px] w-3.5 rounded-full",
                 activo
-                  ? "opacity-0"
+                  ? "bg-white/55"
                   : esHoy
                     ? "bg-primary"
                     : tieneNodos
