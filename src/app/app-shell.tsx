@@ -7,11 +7,12 @@ import { DateScroller } from "@/components/nodo/date-scroller";
 import { NodoCard } from "@/components/nodo/nodo-card";
 import { BottomNav, type Tab } from "@/components/nodo/bottom-nav";
 import { VinculoSheet } from "@/components/nodo/vinculo-sheet";
+import { FiltrosSheet } from "@/components/nodo/filtros-sheet";
 import { ProximosList } from "@/components/nodo/proximos-list";
 import { ActividadHeatmap } from "@/components/nodo/actividad-heatmap";
 import { toISODate, sumarHorasISO, sumarUnDiaISO } from "@/lib/date";
 import { categoriasApi, listasApi, recordatoriosApi, type InterpretacionRecordatorio } from "@/lib/resources";
-import type { Recordatorio } from "@/types/recordatorio";
+import type { Prioridad, Recordatorio } from "@/types/recordatorio";
 
 const LISTA_DEFAULT = "Personal";
 const CATEGORIA_DEFAULT = "General";
@@ -24,6 +25,9 @@ export function AppShell() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
   const [tab, setTab] = useState<Tab>("hoy");
   const [vinculoAbierto, setVinculoAbierto] = useState(false);
+  const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+  const [filtroCategoriaIds, setFiltroCategoriaIds] = useState<Set<string>>(new Set());
+  const [filtroPrioridades, setFiltroPrioridades] = useState<Set<Prioridad>>(new Set());
 
   useEffect(() => {
     (async () => {
@@ -57,25 +61,64 @@ export function AppShell() {
 
   const fechaSeleccionadaISO = toISODate(fechaSeleccionada);
 
+  const categoriasDisponibles = useMemo(() => {
+    const mapa = new Map<string, Recordatorio["categoria"]>();
+    for (const n of nodos) mapa.set(n.categoria.id, n.categoria);
+    return [...mapa.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }, [nodos]);
+
+  const nodosFiltrados = useMemo(
+    () =>
+      nodos.filter((n) => {
+        const pasaCategoria = filtroCategoriaIds.size === 0 || filtroCategoriaIds.has(n.categoriaId);
+        const pasaPrioridad = filtroPrioridades.size === 0 || filtroPrioridades.has(n.prioridad);
+        return pasaCategoria && pasaPrioridad;
+      }),
+    [nodos, filtroCategoriaIds, filtroPrioridades],
+  );
+
   const nodosDelDia = useMemo(
     () =>
-      nodos
+      nodosFiltrados
         .filter((n) => n.fechaLimite && toISODate(new Date(n.fechaLimite)) === fechaSeleccionadaISO)
         .sort((a, b) => a.fechaLimite!.localeCompare(b.fechaLimite!)),
-    [nodos, fechaSeleccionadaISO],
+    [nodosFiltrados, fechaSeleccionadaISO],
   );
 
   const fechasConNodos = useMemo(
     () =>
       new Set(
-        nodos
+        nodosFiltrados
           .filter((n) => n.estado !== "COMPLETADO" && n.fechaLimite)
           .map((n) => toISODate(new Date(n.fechaLimite!))),
       ),
-    [nodos],
+    [nodosFiltrados],
   );
 
   const pendientesHoy = nodosDelDia.filter((n) => n.estado !== "COMPLETADO").length;
+
+  function toggleFiltroCategoria(id: string) {
+    setFiltroCategoriaIds((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(id)) nuevo.delete(id);
+      else nuevo.add(id);
+      return nuevo;
+    });
+  }
+
+  function toggleFiltroPrioridad(prioridad: Prioridad) {
+    setFiltroPrioridades((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(prioridad)) nuevo.delete(prioridad);
+      else nuevo.add(prioridad);
+      return nuevo;
+    });
+  }
+
+  function limpiarFiltros() {
+    setFiltroCategoriaIds(new Set());
+    setFiltroPrioridades(new Set());
+  }
 
   async function toggleCheckbox(id: string) {
     const nodo = nodos.find((n) => n.id === id);
@@ -154,7 +197,11 @@ export function AppShell() {
 
   return (
     <div className="mx-auto flex w-full max-w-md min-h-screen flex-col bg-background">
-      <Header pendientes={pendientesHoy} />
+      <Header
+        pendientes={pendientesHoy}
+        onFiltrar={() => setFiltrosAbierto(true)}
+        filtrosActivos={filtroCategoriaIds.size + filtroPrioridades.size}
+      />
 
       {tab === "hoy" && (
         <>
@@ -198,7 +245,7 @@ export function AppShell() {
       {tab === "proximos" && (
         <main className="flex-1 pb-32">
           <ProximosList
-            nodos={nodos}
+            nodos={nodosFiltrados}
             onCompletar={completar}
             onPosponer={posponer}
             onToggleCheckbox={toggleCheckbox}
@@ -208,12 +255,22 @@ export function AppShell() {
 
       {tab === "actividad" && (
         <main className="flex-1 pb-32">
-          <ActividadHeatmap nodos={nodos} />
+          <ActividadHeatmap nodos={nodosFiltrados} />
         </main>
       )}
 
       <BottomNav active={tab} onChange={setTab} onAbrirVinculo={() => setVinculoAbierto(true)} />
       <VinculoSheet open={vinculoAbierto} onOpenChange={setVinculoAbierto} onCrear={crearNodo} />
+      <FiltrosSheet
+        open={filtrosAbierto}
+        onOpenChange={setFiltrosAbierto}
+        categorias={categoriasDisponibles}
+        categoriaIds={filtroCategoriaIds}
+        onToggleCategoria={toggleFiltroCategoria}
+        prioridades={filtroPrioridades}
+        onTogglePrioridad={toggleFiltroPrioridad}
+        onLimpiar={limpiarFiltros}
+      />
     </div>
   );
 }

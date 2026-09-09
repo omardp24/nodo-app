@@ -10,9 +10,11 @@ import { cn } from "@/lib/utils";
 interface HeaderProps {
   pendientes: number;
   onFiltrar?: () => void;
+  /** Cantidad de filtros activos (categoría + prioridad) — muestra un indicador si es > 0. */
+  filtrosActivos?: number;
 }
 
-export function Header({ pendientes, onFiltrar }: HeaderProps) {
+export function Header({ pendientes, onFiltrar, filtrosActivos = 0 }: HeaderProps) {
   const { soportado, suscrito, cargando, activar } = usePushNotifications();
   const { cerrarSesion } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
@@ -62,10 +64,20 @@ export function Header({ pendientes, onFiltrar }: HeaderProps) {
         <button
           type="button"
           onClick={onFiltrar}
-          aria-label="Filtros"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors active:bg-secondary active:text-foreground"
+          aria-label={filtrosActivos > 0 ? `Filtros (${filtrosActivos} activos)` : "Filtros"}
+          className={cn(
+            "relative flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+            filtrosActivos > 0
+              ? "border-primary/40 bg-primary/10 text-primary"
+              : "border-border bg-card text-muted-foreground active:bg-secondary active:text-foreground",
+          )}
         >
           <SlidersHorizontal className="h-4 w-4" />
+          {filtrosActivos > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-semibold text-primary-foreground">
+              {filtrosActivos}
+            </span>
+          )}
         </button>
 
         <button
