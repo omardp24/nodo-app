@@ -37,7 +37,14 @@ export function LoginForm() {
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background px-6">
       <div className="w-full max-w-xs">
         <div className="mb-8 flex flex-col items-center">
-          <Image src="/lockup.png" alt="Nodo" width={150} height={160} priority />
+          <Image
+            src="/logo-nodo.jpg"
+            alt="Nodo"
+            width={900}
+            height={491}
+            priority
+            className="w-full rounded-2xl shadow-lg shadow-black/20"
+          />
         </div>
 
         <form onSubmit={enviar} className="flex flex-col gap-3">

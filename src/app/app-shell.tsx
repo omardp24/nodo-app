@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { CalendarDays, List } from "lucide-react";
 import { Header } from "@/components/nodo/header";
 import { DateScroller } from "@/components/nodo/date-scroller";
 import { NodoCard } from "@/components/nodo/nodo-card";
@@ -12,10 +13,12 @@ import { BottomNav, type Tab } from "@/components/nodo/bottom-nav";
 import { VinculoSheet } from "@/components/nodo/vinculo-sheet";
 import { FiltrosSheet } from "@/components/nodo/filtros-sheet";
 import { ProximosList } from "@/components/nodo/proximos-list";
+import { CalendarioMes } from "@/components/nodo/calendario-mes";
 import { ActividadHeatmap } from "@/components/nodo/actividad-heatmap";
 import { NodoDetalleSheet } from "@/components/nodo/nodo-detalle-sheet";
 import { Perfil } from "@/components/nodo/perfil";
 import { OnboardingOverlay } from "@/components/nodo/onboarding-overlay";
+import { cn } from "@/lib/utils";
 import { isSameDay, toISODate, sumarHorasISO, sumarUnDiaISO } from "@/lib/date";
 import { calcularEstadisticas } from "@/lib/racha";
 import { categoriasApi, listasApi, recordatoriosApi, type InterpretacionRecordatorio } from "@/lib/resources";
@@ -50,6 +53,7 @@ export function AppShell() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
   const [tab, setTab] = useState<Tab>("hoy");
+  const [vistaProximos, setVistaProximos] = useState<"lista" | "calendario">("lista");
   const [vinculoAbierto, setVinculoAbierto] = useState(false);
   const [filtrosAbierto, setFiltrosAbierto] = useState(false);
   const [filtroCategoriaIds, setFiltroCategoriaIds] = useState<Set<string>>(new Set());
@@ -348,13 +352,77 @@ export function AppShell() {
 
       {tab === "proximos" && (
         <main className="flex-1 pb-32">
-          <ProximosList
-            nodos={nodosFiltrados}
-            onCompletar={completar}
-            onPosponer={posponer}
-            onToggleCheckbox={toggleCheckbox}
-            onAbrir={setDetalleId}
-          />
+          <div className="flex justify-end px-4 pt-3">
+            <div className="flex gap-0.5 rounded-full bg-secondary p-[3px]">
+              <button
+                type="button"
+                onClick={() => setVistaProximos("lista")}
+                aria-label="Ver como lista"
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
+                  vistaProximos === "lista"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                <List className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setVistaProximos("calendario")}
+                aria-label="Ver como calendario"
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
+                  vistaProximos === "calendario"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {vistaProximos === "lista" ? (
+            <ProximosList
+              nodos={nodosFiltrados}
+              onCompletar={completar}
+              onPosponer={posponer}
+              onToggleCheckbox={toggleCheckbox}
+              onAbrir={setDetalleId}
+            />
+          ) : (
+            <div className="flex flex-col gap-4 px-4 pb-4 pt-2">
+              <CalendarioMes
+                nodos={nodosFiltrados}
+                seleccionado={fechaSeleccionada}
+                onSeleccionar={setFechaSeleccionada}
+              />
+              <div>
+                <div className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {capitalizar(FORMATEADOR_FECHA.format(fechaSeleccionada))}
+                </div>
+                {nodosDelDia.length === 0 ? (
+                  <div className="py-10 text-center text-sm text-muted-foreground">
+                    Nada para este día.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {nodosDelDia.map((nodo) => (
+                      <NodoCard
+                        key={nodo.id}
+                        nodo={nodo}
+                        onCompletar={completar}
+                        onPosponer={posponer}
+                        onToggleCheckbox={toggleCheckbox}
+                        onAbrir={setDetalleId}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       )}
 
