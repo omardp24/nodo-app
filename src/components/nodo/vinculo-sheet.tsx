@@ -36,11 +36,7 @@ export function VinculoSheet({ open, onOpenChange, onCrear }: VinculoSheetProps)
     );
 
   useEffect(() => {
-    if (!texto.trim()) {
-      setPreview(null);
-      setError(null);
-      return;
-    }
+    if (!texto.trim()) return;
 
     const miId = ++idPeticion.current;
     const timeout = setTimeout(async () => {
@@ -65,6 +61,14 @@ export function VinculoSheet({ open, onOpenChange, onCrear }: VinculoSheetProps)
 
     return () => clearTimeout(timeout);
   }, [texto]);
+
+  function actualizarTexto(valor: string) {
+    setTexto(valor);
+    if (!valor.trim()) {
+      setPreview(null);
+      setError(null);
+    }
+  }
 
   function agregarSugerencia(sugerencia: string) {
     setTexto((actual) => (actual ? `${actual} ${sugerencia}` : sugerencia));
@@ -150,7 +154,7 @@ export function VinculoSheet({ open, onOpenChange, onCrear }: VinculoSheetProps)
           <div className="flex items-end gap-2">
             <textarea
               value={texto}
-              onChange={(e) => setTexto(e.target.value)}
+              onChange={(e) => actualizarTexto(e.target.value)}
               placeholder="Ej: pagar la luz mañana 9am, 45 dólares en el Banesco"
               rows={1}
               className="max-h-28 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"

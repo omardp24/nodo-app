@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
@@ -35,11 +36,8 @@ export function LoginForm() {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background px-6">
       <div className="w-full max-w-xs">
-        <div className="mb-8 flex flex-col items-center gap-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground">
-            N
-          </span>
-          <h1 className="text-lg font-semibold text-foreground">Nodo</h1>
+        <div className="mb-8 flex flex-col items-center">
+          <Image src="/lockup.png" alt="Nodo" width={150} height={160} priority />
         </div>
 
         <form onSubmit={enviar} className="flex flex-col gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 interface SpeechRecognitionResultLike {
   transcript: string;
@@ -32,13 +32,9 @@ function getSpeechRecognitionCtor(): SpeechRecognitionConstructor | null {
 }
 
 export function useSpeechRecognition(onTranscript: (texto: string) => void) {
-  const [soportado, setSoportado] = useState(false);
+  const [soportado] = useState(() => getSpeechRecognitionCtor() !== null);
   const [escuchando, setEscuchando] = useState(false);
   const reconocedorRef = useRef<SpeechRecognitionLike | null>(null);
-
-  useEffect(() => {
-    setSoportado(getSpeechRecognitionCtor() !== null);
-  }, []);
 
   const alternar = useCallback(() => {
     const Ctor = getSpeechRecognitionCtor();

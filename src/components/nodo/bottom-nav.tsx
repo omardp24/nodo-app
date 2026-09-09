@@ -20,7 +20,7 @@ const TABS: { id: Tab; label: string; icon: typeof Sun }[] = [
 export function BottomNav({ active, onChange, onAbrirVinculo }: BottomNavProps) {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-      <nav className="pointer-events-auto flex items-center gap-1 rounded-full border border-border bg-[#16191E]/90 px-2 py-2 shadow-lg shadow-black/40 backdrop-blur-md">
+      <nav className="pointer-events-auto flex items-center gap-1 rounded-full border border-border bg-card/90 px-2 py-2 shadow-lg shadow-black/40 backdrop-blur-md">
         {TABS.slice(0, 2).map((tab) => (
           <TabButton key={tab.id} tab={tab} active={active === tab.id} onChange={onChange} />
         ))}

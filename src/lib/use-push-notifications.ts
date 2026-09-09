@@ -12,14 +12,19 @@ function base64UrlToUint8Array(base64Url: string): BufferSource {
   return bytes.buffer;
 }
 
+function soportaPush() {
+  return (
+    typeof navigator !== "undefined" && "serviceWorker" in navigator && "PushManager" in window
+  );
+}
+
 export function usePushNotifications() {
-  const [soportado, setSoportado] = useState(false);
+  const [soportado] = useState(soportaPush);
   const [suscrito, setSuscrito] = useState(false);
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-    setSoportado(true);
+    if (!soportado) return;
 
     navigator.serviceWorker
       .register("/sw.js")
@@ -32,7 +37,7 @@ export function usePushNotifications() {
         // Service Worker — no es fatal, solo dejamos "activar" deshabilitado en la práctica.
         console.warn("No se pudo registrar el Service Worker de notificaciones:", error);
       });
-  }, []);
+  }, [soportado]);
 
   const activar = useCallback(async () => {
     if (!soportado) return;

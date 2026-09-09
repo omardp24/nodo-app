@@ -1,7 +1,9 @@
 import type { Prioridad } from "@/types/recordatorio";
 
+// Usa la paleta de marca: ALTA = naranja acento (alert state), MEDIA = azul
+// principal, BAJA = texto secundario (gris neutro, la menos llamativa).
 export const PRIORIDAD_COLOR: Record<Prioridad, string> = {
-  ALTA: "#EF4444",
-  MEDIA: "#F59E0B",
-  BAJA: "#8A93A3",
+  ALTA: "#FF7043",
+  MEDIA: "#1E88E5",
+  BAJA: "#8B949E",
 };

@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   description: "Recordatorios, minimalistas y rápidos.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/icon-512.png",
+    apple: "/icon-512.png",
   },
   appleWebApp: {
     capable: true,
@@ -34,7 +34,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#0d0f12",
+  themeColor: "#0D1117",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
