@@ -8,6 +8,7 @@ import { usePushNotifications } from "@/lib/use-push-notifications";
 import { usePreferencias } from "@/lib/preferencias-context";
 import { calcularEstadisticas } from "@/lib/racha";
 import { cn } from "@/lib/utils";
+import { CorreosConectados } from "@/components/nodo/correos-conectados";
 import type { Recordatorio } from "@/types/recordatorio";
 
 interface PerfilProps {
@@ -113,6 +114,11 @@ export function Perfil({ nodos, vozHabilitada, onToggleVoz, onVerOnboarding }: P
           </div>
         </div>
       )}
+
+      <div>
+        <EncabezadoSeccion titulo="Correos conectados" />
+        <CorreosConectados />
+      </div>
 
       <div>
         <EncabezadoSeccion titulo="Ajustes" />

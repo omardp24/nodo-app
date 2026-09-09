@@ -48,3 +48,15 @@ export const notificacionesApi = {
   suscribir: (sub: PushSubscriptionInput) => api.post("/notificaciones/suscripcion", sub),
   desuscribir: (endpoint: string) => api.delete("/notificaciones/suscripcion", { endpoint }),
 };
+
+export interface CuentaGmail {
+  id: string;
+  email: string;
+  filtrarPorPrincipal: boolean;
+  createdAt: string;
+}
+
+export const gmailApi = {
+  listarCuentas: () => api.get<CuentaGmail[]>("/gmail/cuentas"),
+  desconectarCuenta: (id: string) => api.delete<void>(`/gmail/cuentas/${id}`),
+};
