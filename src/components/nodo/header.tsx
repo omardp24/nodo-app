@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Bell, BellOff, LogOut, SlidersHorizontal } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Bell, BellOff, LogOut, Moon, SlidersHorizontal, Sun } from "lucide-react";
 import { usePushNotifications } from "@/lib/use-push-notifications";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,8 @@ interface HeaderProps {
 export function Header({ pendientes, onFiltrar }: HeaderProps) {
   const { soportado, suscrito, cargando, activar } = usePushNotifications();
   const { cerrarSesion } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
+  const esOscuro = resolvedTheme === "dark";
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 backdrop-blur-md">
@@ -46,6 +49,15 @@ export function Header({ pendientes, onFiltrar }: HeaderProps) {
             {suscrito ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={() => setTheme(esOscuro ? "light" : "dark")}
+          aria-label={esOscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors active:bg-secondary active:text-foreground"
+        >
+          {esOscuro ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
 
         <button
           type="button"
