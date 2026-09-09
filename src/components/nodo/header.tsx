@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Moon, SlidersHorizontal, Sun } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { NodoWordmark } from "@/components/nodo/nodo-wordmark";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -22,12 +22,7 @@ export function Header({ onFiltrar, filtrosActivos = 0, perfilActivo = false, on
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 backdrop-blur-md">
-      <div className="flex items-center gap-2">
-        <Image src="/icon-192.png" alt="" width={24} height={24} className="rounded-md" />
-        <span className="text-base font-semibold tracking-tight text-foreground">
-          Nodo
-        </span>
-      </div>
+      <NodoWordmark tamanoTexto="text-base" className="gap-1.5" />
 
       <div className="flex items-center gap-2">
         <button
