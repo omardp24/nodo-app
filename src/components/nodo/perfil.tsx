@@ -2,9 +2,10 @@
 
 import { useMemo } from "react";
 import { useTheme } from "next-themes";
-import { Bell, ChevronRight, CircleHelp, LogOut, Mic, Moon, Sun } from "lucide-react";
+import { Bell, ChevronRight, CircleHelp, Clock, LogOut, Mic, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { usePushNotifications } from "@/lib/use-push-notifications";
+import { usePreferencias } from "@/lib/preferencias-context";
 import { calcularEstadisticas } from "@/lib/racha";
 import { cn } from "@/lib/utils";
 import type { Recordatorio } from "@/types/recordatorio";
@@ -28,6 +29,7 @@ export function Perfil({ nodos, vozHabilitada, onToggleVoz, onVerOnboarding }: P
   const { resolvedTheme, setTheme } = useTheme();
   const { soportado: pushSoportado, suscrito: pushSuscrito, cargando: pushCargando, activar, desactivar } =
     usePushNotifications();
+  const { formatoHora, setFormatoHora } = usePreferencias();
 
   const email = session?.user.email ?? "";
   const nombre = nombreDeEmail(email);
@@ -155,6 +157,35 @@ export function Perfil({ nodos, vozHabilitada, onToggleVoz, onVerOnboarding }: P
                 )}
               >
                 Claro
+              </button>
+            </div>
+          </FilaAjuste>
+
+          <FilaAjuste
+            icono={<Clock className="h-4 w-4" />}
+            titulo="Formato de hora"
+            subtitulo={formatoHora === "12h" ? "12 horas (2:30 p. m.)" : "24 horas (14:30)"}
+          >
+            <div className="flex gap-0.5 rounded-full bg-secondary p-[3px]">
+              <button
+                type="button"
+                onClick={() => setFormatoHora("24h")}
+                className={cn(
+                  "rounded-full px-2.5 py-1.5 text-[11.5px] font-semibold transition-colors",
+                  formatoHora === "24h" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )}
+              >
+                24h
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormatoHora("12h")}
+                className={cn(
+                  "rounded-full px-2.5 py-1.5 text-[11.5px] font-semibold transition-colors",
+                  formatoHora === "12h" ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )}
+              >
+                12h
               </button>
             </div>
           </FilaAjuste>

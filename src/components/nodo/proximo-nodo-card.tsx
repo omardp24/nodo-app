@@ -2,6 +2,7 @@
 
 import { Check, Clock, Moon } from "lucide-react";
 import { faltaPara, horaDeISO } from "@/lib/date";
+import { usePreferencias } from "@/lib/preferencias-context";
 import type { Recordatorio } from "@/types/recordatorio";
 
 interface ProximoNodoCardProps {
@@ -12,6 +13,7 @@ interface ProximoNodoCardProps {
 }
 
 export function ProximoNodoCard({ nodo, onCompletar, onPosponer, onAbrir }: ProximoNodoCardProps) {
+  const { formatoHora } = usePreferencias();
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 rounded-3xl bg-gradient-to-br from-primary to-warning p-[1.5px] shadow-lg shadow-black/10 duration-300">
       <div className="rounded-[22.5px] bg-card px-4.5 pb-4 pt-4.5">
@@ -35,7 +37,7 @@ export function ProximoNodoCard({ nodo, onCompletar, onPosponer, onAbrir }: Prox
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {nodo.fechaLimite && (
               <span className="font-semibold tabular-nums text-foreground">
-                {horaDeISO(nodo.fechaLimite)}
+                {horaDeISO(nodo.fechaLimite, formatoHora === "12h")}
               </span>
             )}
             {nodo.categoria?.lista && (

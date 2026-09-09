@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { PreferenciasProvider } from "@/lib/preferencias-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -50,7 +51,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-background text-foreground overscroll-none">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="nodo-theme">
-          <AuthProvider>{children}</AuthProvider>
+          <PreferenciasProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </PreferenciasProvider>
         </ThemeProvider>
       </body>
     </html>

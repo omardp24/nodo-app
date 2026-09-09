@@ -9,6 +9,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { PRIORIDAD_COLOR } from "@/lib/priority";
+import { usePreferencias } from "@/lib/preferencias-context";
 import type { OrigenRecordatorio, Prioridad, Recordatorio } from "@/types/recordatorio";
 
 interface NodoDetalleSheetProps {
@@ -25,20 +26,22 @@ const ETIQUETA_ORIGEN: Record<OrigenRecordatorio, string> = {
   MANUAL: "Manual",
 };
 
-function formatoCuando(iso: string | null): string {
+function formatoCuando(iso: string | null, formato12h: boolean): string {
   if (!iso) return "Sin fecha";
   const fecha = new Date(iso);
   const formateador = new Intl.DateTimeFormat("es", {
     weekday: "short",
     day: "numeric",
     month: "short",
-    hour: "2-digit",
+    hour: formato12h ? "numeric" : "2-digit",
     minute: "2-digit",
+    hour12: formato12h,
   });
   return formateador.format(fecha);
 }
 
 export function NodoDetalleSheet({ nodo, onOpenChange, onCompletar, onPosponer }: NodoDetalleSheetProps) {
+  const { formatoHora } = usePreferencias();
   return (
     <Drawer open={nodo !== null} onOpenChange={onOpenChange}>
       <DrawerContent className="border-border bg-card">
@@ -63,7 +66,7 @@ export function NodoDetalleSheet({ nodo, onOpenChange, onCompletar, onPosponer }
 
             <div className="flex flex-col gap-4 px-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
               <div className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl border border-border">
-                <FilaDetalle etiqueta="Cuándo" valor={formatoCuando(nodo.fechaLimite)} />
+                <FilaDetalle etiqueta="Cuándo" valor={formatoCuando(nodo.fechaLimite, formatoHora === "12h")} />
                 <FilaDetalle
                   etiqueta="Lista"
                   valor={

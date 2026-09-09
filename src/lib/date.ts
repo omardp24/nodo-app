@@ -31,9 +31,12 @@ const MES_ABBR = [
   "dic",
 ];
 
-/** "HH:mm" en hora local a partir de un ISO string. */
-export function horaDeISO(iso: string): string {
+/** Hora local a partir de un ISO string — "HH:mm" (24h) o "h:mm a. m./p. m." (12h) según formato12h. */
+export function horaDeISO(iso: string, formato12h = false): string {
   const d = new Date(iso);
+  if (formato12h) {
+    return d.toLocaleTimeString("es", { hour: "numeric", minute: "2-digit", hour12: true });
+  }
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 

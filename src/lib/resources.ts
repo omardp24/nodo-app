@@ -31,7 +31,12 @@ export interface InterpretacionRecordatorio {
 
 export const asistenteApi = {
   interpretar: (texto: string) =>
-    api.post<InterpretacionRecordatorio>("/asistente/interpretar", { texto }),
+    api.post<InterpretacionRecordatorio>("/asistente/interpretar", {
+      texto,
+      // Sin esto el backend no tiene forma de saber en qué zona horaria interpretar
+      // horas relativas como "4 de la tarde" — las resolvía en UTC por defecto.
+      zonaHoraria: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }),
 };
 
 export interface PushSubscriptionInput {

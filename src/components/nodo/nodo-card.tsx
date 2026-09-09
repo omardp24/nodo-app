@@ -6,6 +6,7 @@ import { Check, Clock, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PRIORIDAD_COLOR } from "@/lib/priority";
 import { horaDeISO } from "@/lib/date";
+import { usePreferencias } from "@/lib/preferencias-context";
 import type { Recordatorio } from "@/types/recordatorio";
 
 interface NodoCardProps {
@@ -35,6 +36,7 @@ export function NodoCard({
 }: NodoCardProps) {
   const x = useMotionValue(0);
   const [zonaIzquierda, setZonaIzquierda] = useState<"1h" | "manana" | null>(null);
+  const { formatoHora } = usePreferencias();
 
   const completado = nodo.estado === "COMPLETADO";
 
@@ -176,7 +178,7 @@ export function NodoCard({
 
         {nodo.fechaLimite && (
           <span className="shrink-0 text-sm font-medium tabular-nums text-muted-foreground">
-            {horaDeISO(nodo.fechaLimite)}
+            {horaDeISO(nodo.fechaLimite, formatoHora === "12h")}
           </span>
         )}
       </motion.div>

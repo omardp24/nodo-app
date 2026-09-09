@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useSpeechRecognition } from "@/lib/use-speech-recognition";
+import { usePreferencias } from "@/lib/preferencias-context";
 import { asistenteApi, type InterpretacionRecordatorio } from "@/lib/resources";
 import { ApiError } from "@/lib/api";
 
@@ -36,6 +37,7 @@ export function VinculoSheet({ open, onOpenChange, onCrear, vozHabilitada = true
     useSpeechRecognition((transcrito) =>
       setTexto((actual) => (actual ? `${actual} ${transcrito}` : transcrito)),
     );
+  const { formatoHora } = usePreferencias();
 
   useEffect(() => {
     if (!texto.trim()) return;
@@ -124,8 +126,9 @@ export function VinculoSheet({ open, onOpenChange, onCrear, vozHabilitada = true
                         weekday: "short",
                         day: "numeric",
                         month: "short",
-                        hour: "2-digit",
+                        hour: formatoHora === "12h" ? "numeric" : "2-digit",
                         minute: "2-digit",
+                        hour12: formatoHora === "12h",
                       })
                     : "Sin fecha"}
                   {preview.monto != null && ` · ${preview.monto}${preview.banco ? ` · ${preview.banco}` : ""}`}
