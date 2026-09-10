@@ -4,6 +4,8 @@ import type { Categoria, CrearRecordatorioInput, Lista, Recordatorio } from "@/t
 export const listasApi = {
   listar: () => api.get<Lista[]>("/listas"),
   crear: (nombre: string) => api.post<Lista>("/listas", { nombre }),
+  renombrar: (id: string, nombre: string) => api.patch<Lista>(`/listas/${id}`, { nombre }),
+  eliminar: (id: string) => api.delete<void>(`/listas/${id}`),
 };
 
 export const categoriasApi = {
@@ -11,6 +13,8 @@ export const categoriasApi = {
     api.get<Categoria[]>(`/categorias${listaId ? `?listaId=${listaId}` : ""}`),
   crear: (nombre: string, listaId: string) =>
     api.post<Categoria>("/categorias", { nombre, listaId }),
+  renombrar: (id: string, nombre: string) => api.patch<Categoria>(`/categorias/${id}`, { nombre }),
+  eliminar: (id: string) => api.delete<void>(`/categorias/${id}`),
 };
 
 export const recordatoriosApi = {
@@ -53,10 +57,13 @@ export interface CuentaGmail {
   id: string;
   email: string;
   filtrarPorPrincipal: boolean;
+  listaId: string | null;
   createdAt: string;
 }
 
 export const gmailApi = {
   listarCuentas: () => api.get<CuentaGmail[]>("/gmail/cuentas"),
   desconectarCuenta: (id: string) => api.delete<void>(`/gmail/cuentas/${id}`),
+  asignarLista: (id: string, listaId: string | null) =>
+    api.patch<CuentaGmail>(`/gmail/cuentas/${id}`, { listaId }),
 };

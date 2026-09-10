@@ -9,6 +9,7 @@ import { usePreferencias } from "@/lib/preferencias-context";
 import { calcularEstadisticas } from "@/lib/racha";
 import { cn } from "@/lib/utils";
 import { CorreosConectados } from "@/components/nodo/correos-conectados";
+import { GestionarListas } from "@/components/nodo/gestionar-listas";
 import type { Recordatorio } from "@/types/recordatorio";
 
 interface PerfilProps {
@@ -17,8 +18,6 @@ interface PerfilProps {
   onToggleVoz: () => void;
   onVerOnboarding: () => void;
 }
-
-const COLORES_LISTA = ["var(--primary)", "var(--warning)", "var(--muted-foreground)"];
 
 function nombreDeEmail(email: string): string {
   const local = email.split("@")[0] ?? email;
@@ -38,20 +37,6 @@ export function Perfil({ nodos, vozHabilitada, onToggleVoz, onVerOnboarding }: P
   const esOscuro = resolvedTheme === "dark";
 
   const estadisticas = useMemo(() => calcularEstadisticas(nodos), [nodos]);
-
-  const misListas = useMemo(() => {
-    const mapa = new Map<string, { nombre: string; categorias: Set<string>; total: number }>();
-    for (const n of nodos) {
-      const nombreLista = n.categoria.lista?.nombre ?? "Sin lista";
-      const entrada = mapa.get(nombreLista) ?? { nombre: nombreLista, categorias: new Set(), total: 0 };
-      entrada.categorias.add(n.categoria.nombre);
-      entrada.total += 1;
-      mapa.set(nombreLista, entrada);
-    }
-    return [...mapa.values()]
-      .sort((a, b) => b.total - a.total)
-      .map((l, i) => ({ ...l, color: COLORES_LISTA[i % COLORES_LISTA.length] }));
-  }, [nodos]);
 
   return (
     <div className="flex flex-col gap-6 px-4 pb-2 pt-2">
@@ -88,32 +73,10 @@ export function Perfil({ nodos, vozHabilitada, onToggleVoz, onVerOnboarding }: P
         <TarjetaStat valor={estadisticas.rachaMaxima} etiqueta="racha máxima" />
       </div>
 
-      {misListas.length > 0 && (
-        <div>
-          <EncabezadoSeccion titulo="Mis listas" />
-          <div className="flex flex-col gap-2">
-            {misListas.map((lista) => (
-              <div
-                key={lista.nombre}
-                className="flex items-center gap-3 rounded-2xl border border-border border-l-[3px] bg-card px-4 py-3.5"
-                style={{ borderLeftColor: lista.color }}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[14.5px] font-semibold text-foreground">
-                    @{lista.nombre}
-                  </div>
-                  <div className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
-                    {[...lista.categorias].join(" · ")}
-                  </div>
-                </div>
-                <span className="shrink-0 text-[13px] font-semibold tabular-nums text-muted-foreground">
-                  {lista.total}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div>
+        <EncabezadoSeccion titulo="Mis listas" />
+        <GestionarListas nodos={nodos} />
+      </div>
 
       <div>
         <EncabezadoSeccion titulo="Correos conectados" />
