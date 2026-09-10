@@ -24,6 +24,11 @@ export function ProximosList({
     .filter((n) => n.fechaLimite && toISODate(new Date(n.fechaLimite)) > hoy)
     .sort((a, b) => a.fechaLimite!.localeCompare(b.fechaLimite!));
 
+  // Los recordatorios creados desde correos no traen fecha límite (nadie la
+  // extrae del contenido todavía) — sin esta sección quedaban invisibles en
+  // toda la app, porque el resto de las vistas se organiza por fecha.
+  const sinFecha = nodos.filter((n) => !n.fechaLimite && n.estado !== "COMPLETADO");
+
   const grupos = futuros.reduce<Record<string, Recordatorio[]>>((acc, nodo) => {
     const fecha = toISODate(new Date(nodo.fechaLimite!));
     (acc[fecha] ??= []).push(nodo);
@@ -32,7 +37,7 @@ export function ProximosList({
 
   const fechas = Object.keys(grupos).sort();
 
-  if (fechas.length === 0) {
+  if (fechas.length === 0 && sinFecha.length === 0) {
     return (
       <div className="px-4 py-16 text-center text-sm text-muted-foreground">
         No hay nodos próximos todavía.
@@ -42,6 +47,31 @@ export function ProximosList({
 
   return (
     <div className="flex flex-col px-4 py-2">
+      {sinFecha.length > 0 && (
+        <section className="mb-6">
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="text-xs font-bold uppercase tracking-wide text-foreground">Sin fecha</span>
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[11px] tabular-nums text-muted-foreground">
+              {sinFecha.length} {sinFecha.length === 1 ? "nodo" : "nodos"}
+            </span>
+          </div>
+          <div>
+            {sinFecha.map((nodo, i) => (
+              <NodoCard
+                key={nodo.id}
+                nodo={nodo}
+                onCompletar={onCompletar}
+                onPosponer={onPosponer}
+                onToggleCheckbox={onToggleCheckbox}
+                onAbrir={onAbrir}
+                hilo
+                esUltimoDelHilo={i === sinFecha.length - 1}
+              />
+            ))}
+          </div>
+        </section>
+      )}
       {fechas.map((fecha) => {
         const fechaObj = new Date(`${fecha}T00:00:00`);
         return (
